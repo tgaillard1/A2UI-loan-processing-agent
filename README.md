@@ -1,12 +1,12 @@
-# FSI Equipment Finance Compliance Originations Supervisor (v6)
+# A2UI-Loan-Processing Agent
 
-This directory contains the final, highly optimized, enterprise-grade E2E Compliance origination supervisor workstation upgrade (v6).
+This directory contains the final, highly optimized, enterprise-grade E2E Loan Processing Compliance supervisor.
 
 ---
 
 ## 📂 Architecture & Key Capabilities
 
-The compliance supervisor acts as a highly structured, conservative compliance auditing officer verifying underwriting portfolios, extracting invoice and collateral metadata, checking lease limits deterministically, and posting real-time CRM status writebacks.
+The Loan processing compliance supervisor acts as a highly structured, conservative compliance auditing officer verifying underwriting portfolios, extracting invoice and collateral metadata, checking lease limits deterministically, and posting real-time CRM status writebacks.
 
 ### 1. Generic Visual Executor Decoupling (`agent_executor.py`, `gemini_agent.py`)
 - **A2UI Portability**: Visual formatting is decoupled from backend executor code. Layout and visual component rendering are dynamically built using lightweight post-LLM metadata block parsed via `---a2ui_JSON---` delimiter.
@@ -25,7 +25,7 @@ The compliance supervisor acts as a highly structured, conservative compliance a
 
 ## ⚙️ Parametrizing Integration Endpoints (`deploy.sh`)
 
-The compliance agent communicates with secure CRM mocks servers. To prevent URL-routing double slashes or case mismatch mismatches, integration endpoints are fully parameterized.
+The compliance agent communicates with secure CRM mocks servers. You can set up those assets by going to the "staging-assets" directoyr in this repo.  To prevent URL-routing double slashes or case mismatch mismatches, integration endpoints are fully parameterized.
 
 ### Configuration parameters:
 1. **`SIEBEL_URL`**: The target Siebel CRM System of Record endpoint (default: Regional Mocks Service).
