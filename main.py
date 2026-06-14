@@ -1,0 +1,70 @@
+import asyncio
+import os
+from a2a.server.apps.jsonrpc.starlette_app import A2AStarletteApplication
+from a2a.server.request_handlers import DefaultRequestHandler
+from a2a.server.tasks import InMemoryTaskStore
+from a2a.types import (
+    AgentCapabilities,
+    AgentCard,
+    AgentSkill,
+)
+from dotenv import load_dotenv
+from gemini_agent import EquipmentFinanceExecutor, GeminiAgent
+
+load_dotenv()
+
+# The URL of your deployed Cloud Function.
+# It's best to set this as an environment variable in your deployment.
+# For example: "https://us-central1-my-project.cloudfunctions.net/my-function-name"
+# AGENT_URL = "https://a2aagenttest-906194901769.us-central1.run.app"
+AGENT_URL = os.environ.get("AGENT_URL", "http://127.0.0.1:8001")
+
+# 1. Create the AgentCard, RequestHandler, and App at the global scope.
+#    This is more efficient as it's done only once when the function instance starts.
+agent = GeminiAgent()
+agent_card = agent.create_agent_card(AGENT_URL)
+
+request_handler = DefaultRequestHandler(
+    agent_executor=EquipmentFinanceExecutor(agent),
+    task_store=InMemoryTaskStore(),
+)
+
+# 2. Define dynamic Header propagation variables
+import contextvars
+from starlette.middleware.base import BaseHTTPMiddleware
+
+incoming_auth_token = contextvars.ContextVar(
+    "incoming_auth_token", default=None
+)
+
+
+class HeaderPropagationMiddleware(BaseHTTPMiddleware):
+
+  async def dispatch(self, request, call_next):
+    print(f"DEBUG: Incoming ASGI request headers: {dict(request.headers)}")
+
+    # Extract either standard Authorization or serverless-authorization passed by Gemini Enterprise
+    auth_token = (
+        request.headers.get("x-serverless-authorization")
+        or request.headers.get("X-Serverless-Authorization")
+        or request.headers.get("Authorization")
+        or request.headers.get("authorization")
+    )
+
+    if auth_token:
+      print(f"DEBUG: Captured OIDC Invocation token: {auth_token[:30]}...")
+      incoming_auth_token.set(auth_token)
+    else:
+      print("DEBUG: Incoming Authorization credentials are MISSING or EMPTY!")
+
+    response = await call_next(request)
+    return response
+
+
+# 3. The Functions Framework will automatically look for this 'app' variable.
+app = A2AStarletteApplication(
+    agent_card=agent_card,
+    http_handler=request_handler,
+).build()
+
+app.add_middleware(HeaderPropagationMiddleware)

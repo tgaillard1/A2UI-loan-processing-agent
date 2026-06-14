@@ -1,0 +1,12 @@
+a2a-sdk[http-server]<0.4
+google-generativeai
+uvicorn
+python-dotenv
+asyncclick
+
+gunicorn
+google-cloud-aiplatform
+google-adk
+google-cloud-firestore
+google-cloud-storage
+pymupdf
